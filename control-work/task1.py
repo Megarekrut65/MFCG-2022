@@ -25,9 +25,10 @@ class BezierSpline:
         return points_to_draw
 
     def find_control_points(self, np_points, n):
+        (_, dimension) = np_points.shape
         # create coefficient matrix and vector b
         matrix = np.zeros((2 * n, 2 * n), np.float)
-        vector = np.zeros((2 * n, 2), np.float)
+        vector = np.zeros((2 * n, dimension), np.float)
         for i in np.arange(1, 2 * n - 2, 2):
             matrix[i, i - 1] = 1
             matrix[i, i] = -2
@@ -36,8 +37,8 @@ class BezierSpline:
             matrix[i + 1, i] = 1
             matrix[i + 1, i + 1] = 1
 
-            vector[i] = [0, 0]
-            vector[i + 1] = [2 * np_points[i // 2 + 1][0], 2 * np_points[i // 2 + 1][1]]
+            vector[i] = np.zeros(dimension, np.float)
+            vector[i + 1] = 2 * np_points[i // 2 + 1]
 
         if self.connect:  # boundary conditions for a closed spline
             matrix[0, 0] = 2
@@ -48,8 +49,8 @@ class BezierSpline:
             matrix[2 * n - 1, 0] = 1
             matrix[2 * n - 1, 2 * n - 1] = 1
 
-            vector[0] = [0, 0]
-            vector[2 * n - 1] = [2 * np_points[0][0], 2 * np_points[0][1]]
+            vector[0] = [0, 0, 0]
+            vector[2 * n - 1] = 2 * np_points[0]
         else:  # boundary conditions for an open spline
             matrix[0, 0] = 2
             matrix[0, 1] = -1
@@ -61,12 +62,21 @@ class BezierSpline:
 
         return np.linalg.solve(matrix, vector)
 
-    def bezier_item(self, t, p0, a0, b0, p1):
-        return [(1 - t) ** 3 * p0[0] + 3 * (1 - t) ** 2 * t * a0[0] + 3 * (1 - t) * t ** 2 * b0[0] + t ** 3 * p1[0],
-                (1 - t) ** 3 * p0[1] + 3 * (1 - t) ** 2 * t * a0[1] + 3 * (1 - t) * t ** 2 * b0[1] + t ** 3 * p1[1], 0]
+    def bezier_item(self, t, pi, ai, bi, pi1):
+        return (1 - t) ** 3 * pi + 3 * (1 - t) ** 2 * t * ai + 3 * (1 - t) * t ** 2 * bi + t ** 3 * pi1
+
+
+def make_three_dimension(vector):
+    arr = np.array(vector)
+    (_, dimension) = arr.shape
+    if dimension == 3:
+        return vector
+    return [[vector[i][0], vector[i][1], 0] for i in range(0, len(vector))]
 
 
 def draw_points(spline_points, points):
+    spline_points = make_three_dimension(spline_points)
+    points = make_three_dimension(points)
     # create lines between neighboring points
     lines = []
     for i in range(0, len(spline_points) - 1):
@@ -75,10 +85,10 @@ def draw_points(spline_points, points):
     spline_lines.points = o3d.utility.Vector3dVector(spline_points)
     spline_lines.lines = o3d.utility.Vector2iVector(lines)
 
-    points = [[points[i][0], points[i][1], 0] for i in range(0, len(points))]  # add z coordinate to points
+    # points = [[points[i][0], points[i][1], 0] for i in range(0, len(points))]  # add z coordinate to points
     input_points = o3d.geometry.PointCloud()
     input_points.points = o3d.utility.Vector3dVector(points)
-    input_points.colors = o3d.utility.Vector3dVector([[1, 0, 0] for i in range(0, len(points))])
+    input_points.colors = o3d.utility.Vector3dVector([[1, 0, 0] for _ in range(0, len(points))])
 
     o3d.visualization.draw_geometries([spline_lines, input_points], "Bezier spline", 800, 800)
 

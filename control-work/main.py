@@ -1,5 +1,6 @@
-
 import json
+
+import numpy
 
 from task1 import FirstTask
 from task2 import run_second
@@ -26,8 +27,7 @@ def second():
 def main():
     ft = FirstTask(False)
     first(ft, 19)
-    # first_all(ft)
-
+    first_all(ft)
 
 
 if __name__ == '__main__':
