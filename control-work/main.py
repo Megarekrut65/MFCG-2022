@@ -1,16 +1,25 @@
-from task1 import run_first
+
 import json
+
+from task1 import FirstTask
+
+
+def first(first_task, number):
+    f = open(f'points/{number}.json')
+    data = json.load(f)
+    first_task.run(points=data['curve'])
+
+
+def first_all(first_task):
+    for i in range(1, 25):
+        print(i)
+        first(first_task, i)
 
 
 def main():
-    """for i in range(1, 25):
-        f = open(f'points/{i}.json')
-        data = json.load(f)
-        print(i)
-        run_first(points=data['curve'])"""
-    f = open('19.json')
-    data = json.load(f)
-    run_first(points=data['curve'])
+    ft = FirstTask(False)
+    first(ft, 19)
+    # first_all(ft)
 
 
 if __name__ == '__main__':
