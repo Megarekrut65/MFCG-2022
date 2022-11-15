@@ -8,19 +8,14 @@ def run_first(points):
     n = len(np_points) - 1  # splain count
 
     control_points = find_control_points(np_points, n)
-    # create array with splain and control points
-    points_for_bezier = []
-    for i in range(0, n):
-        points_for_bezier.append(np_points[i])  # pi
-        points_for_bezier.append(control_points[2 * i])  # ai
-        points_for_bezier.append(control_points[2 * i + 1])  # bi
-    points_for_bezier.append(np_points[n])  # pn
     # create points for drawing
     points_to_draw = []
-    for i in range(0, len(points_for_bezier) // 3):
+    for i in range(0, n):
         for t in arange(0.0, 1, 0.01):
-            points_to_draw.append(bezier_item(t, points_for_bezier[3 * i], points_for_bezier[3 * i + 1],
-                                              points_for_bezier[3 * i + 2], points_for_bezier[3 * i + 3]))
+            points_to_draw.append(bezier_item(t, np_points[i],  # pi
+                                              control_points[2 * i],  # ai
+                                              control_points[2 * i + 1],  # bi
+                                              np_points[i + 1]))  # pi+1
     draw_points(points_to_draw, points)
 
 
@@ -56,14 +51,17 @@ def bezier_item(t, p0, a0, b0, p1):
 
 
 def draw_points(spline_points, points):
-    points = [[points[i][0], points[i][1], 0] for i in range(0, len(points))]
+    # create lines between neighboring points
     lines = []
     for i in range(0, len(spline_points) - 1):
-        lines.append([i, i+1])
-    line_set = o3d.geometry.LineSet()
-    line_set.points = o3d.utility.Vector3dVector(spline_points)
-    line_set.lines = o3d.utility.Vector2iVector(lines)
-    pcd = o3d.geometry.PointCloud()
-    pcd.points = o3d.utility.Vector3dVector(points)
-    pcd.colors = o3d.utility.Vector3dVector([[1, 0, 0] for i in range(0, len(points))])
-    o3d.visualization.draw_geometries([line_set, pcd], "Bezier spline", 800, 800)
+        lines.append([i, i + 1])
+    spline_lines = o3d.geometry.LineSet()
+    spline_lines.points = o3d.utility.Vector3dVector(spline_points)
+    spline_lines.lines = o3d.utility.Vector2iVector(lines)
+
+    points = [[points[i][0], points[i][1], 0] for i in range(0, len(points))]  # add z coordinate to points
+    input_points = o3d.geometry.PointCloud()
+    input_points.points = o3d.utility.Vector3dVector(points)
+    input_points.colors = o3d.utility.Vector3dVector([[1, 0, 0] for i in range(0, len(points))])
+
+    o3d.visualization.draw_geometries([spline_lines, input_points], "Bezier spline", 800, 800)
