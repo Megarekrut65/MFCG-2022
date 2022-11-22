@@ -1,25 +1,36 @@
-import open3d as o3d
+from math import sqrt
+
 import numpy as np
+import open3d as o3d
 
-from task1 import draw_points, BezierSpline
+from task1 import BezierSpline
 
+def point_abs(a):
+    return sqrt(a[0]**2 + a[1]**2 + a[2]**2)
+
+def build_t_points(points):
+    n = len(points) - 1
+    res = np.zeros(n + 1)
+    res[0] = 0
+    res[n] = 1
+    d = 0
+    for p in range(1, n+1):
+        d += sqrt(point_abs(points[p] - points[p-1]))
+    for p in range(1, n):
+        res[p] = res[p-1] + sqrt(point_abs(points[p] - points[p-1]))/d
+    return res
+
+def build_knor(t_points, k):
+    n = len(t_points) - 1
+    res = np.zeros(n + 1)
+    res[0:k+1] = 0
+    res[n-k:n+1] = 1
+    for j in range(k+1, n-k):
+        res[j] = 0
+        for i in range(j, j + k - 1):
+            res[j] += t_points[i]
+        res[j] /= k
+    return res
 
 def run_second(points, indexes, grid):
-    points = np.array(points)
-    points_to_draw = []
-    bezier = BezierSpline(False)
-    for i in range(5, grid[0]):
-        p = points[i:i+grid[0]]
-        res = bezier.run(p)
-        for j in range(0, len(res)):
-            points_to_draw.append(res[j])
-    for i in points_to_draw:
-        print(i[2])
-    draw_points(points_to_draw, points)
-
-
-"""def draw_points(points, indexes, grid):
-    # create lines between neighboring points
-    input_points = o3d.geometry.PointCloud()
-    input_points.points = o3d.utility.Vector3dVector(points)
-    o3d.visualization.draw_geometries([input_points], "NURBS surface", 800, 800)"""
+    print(build_t_points(np.array(points)))

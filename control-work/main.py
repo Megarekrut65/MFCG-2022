@@ -25,6 +25,8 @@ def second():
 
 
 def main():
+    second()
+    return
     ft = FirstTask(False)
     first(ft, 19)
     first_all(ft)
