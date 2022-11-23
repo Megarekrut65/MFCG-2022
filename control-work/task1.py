@@ -49,7 +49,7 @@ class BezierSpline:
             matrix[2 * n - 1, 0] = 1
             matrix[2 * n - 1, 2 * n - 1] = 1
 
-            vector[0] = [0, 0, 0]
+            vector[0] = np.zeros(dimension)
             vector[2 * n - 1] = 2 * np_points[0]
         else:  # boundary conditions for an open spline
             matrix[0, 0] = 2
