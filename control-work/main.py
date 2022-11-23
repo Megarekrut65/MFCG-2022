@@ -3,7 +3,7 @@ import json
 import numpy
 
 from task1 import FirstTask
-from task2 import NURBS, run_second
+from task2 import run_second, run_second_as_first
 
 
 def first(first_task, number):
@@ -21,15 +21,14 @@ def first_all(first_task):
 def second():
     f = open(f'points/{19}.json')
     data = json.load(f)
-    nurbs = NURBS(data['curve'], 4)
-    run_second(nurbs)
+    run_second_as_first(data['curve'], 4)
     # run_second(data["surface"]["points"], data["surface"]["indices"], data["surface"]["gridSize"])
 
 
 def main():
     second()
     return
-    ft = FirstTask(False)
+    ft = FirstTask(connect=False)
     first(ft, 19)
     # first_all(ft)
 

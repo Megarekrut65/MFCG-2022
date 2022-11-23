@@ -13,7 +13,7 @@ def point_abs(a):
     return sqrt(res)
 
 
-class NURBS:
+class NURBSSpline:
     def __init__(self, points, k):
         self.points = np.array(points)
         print(f"points: {self.points}")
@@ -26,7 +26,8 @@ class NURBS:
         self.knot = self.build_knot()
         print(f"knot: {self.knot}")
         print(f"{self.basis_function(2, 0, 0)}")
-
+        self.w = np.full(self.n+1, 1)
+        print(f"w: {self.w}")
         (_, dimension) = self.points.shape
         # create coefficient matrix and vector b
         matrix = np.zeros((self.n + 1, self.n + 1), np.float)
@@ -37,7 +38,7 @@ class NURBS:
         matrix[self.n][self.n] = 1
         for i in range(1, self.n):
             for j in range(0, self.n + 1):
-                matrix[i][j] = self.basis_function(j, self.p, self.t_points[i])
+                matrix[i][j] = self.basis_function(j, self.p, self.t_points[i]) * self.w[j]
         print(f"matrix: {matrix}")
         print(f"vector: {vector}")
         self.x = np.linalg.solve(matrix, vector)
@@ -50,7 +51,7 @@ class NURBS:
             return self.points[self.n]
         res = 0
         for i in range(0, self.n + 1):
-            res += self.basis_function(i, self.p, t) * self.x[i]
+            res += self.basis_function(i, self.p, t) * self.x[i] * self.w[i]
         return res
 
     def build_t_points(self):
@@ -88,8 +89,12 @@ class NURBS:
         return res
 
 
-def run_second(nurbs):
+def run_second_as_first(points, k):
+    nurbs = NURBSSpline(points, k)
     points_to_draw = []
     for t in np.arange(0.0, 1.01, 0.01):
         points_to_draw.append(nurbs.eval(t))
     draw_points(points_to_draw, nurbs.points)
+
+def run_second(points, indices, grid_size, k):
+    pass
