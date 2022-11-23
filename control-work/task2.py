@@ -44,6 +44,10 @@ class NURBS:
         print(f"x: {self.x}")
 
     def eval(self, t):
+        if t == 0:
+            return self.points[0]
+        if t == 1:
+            return self.points[self.n]
         res = 0
         for i in range(0, self.n + 1):
             res += self.basis_function(i, self.p, t) * self.x[i]
@@ -86,6 +90,6 @@ class NURBS:
 
 def run_second(nurbs):
     points_to_draw = []
-    for t in np.arange(0.0, 1.0, 0.01):
+    for t in np.arange(0.0, 1.01, 0.01):
         points_to_draw.append(nurbs.eval(t))
     draw_points(points_to_draw, nurbs.points)

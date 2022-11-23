@@ -28,7 +28,8 @@ def second():
 
 def main():
     second()
-    ft = FirstTask(True)
+    return
+    ft = FirstTask(False)
     first(ft, 19)
     # first_all(ft)
 
