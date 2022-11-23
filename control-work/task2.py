@@ -37,8 +37,11 @@ class NURBSSpline:
         matrix[self.n] = np.zeros(self.n + 1)
         matrix[self.n][self.n] = 1
         for i in range(1, self.n):
+            sum_n = 0
             for j in range(0, self.n + 1):
                 matrix[i][j] = self.basis_function(j, self.p, self.t_points[i]) * self.w[j]
+                sum_n += matrix[i][j]
+            matrix[i] /= sum_n
         print(f"matrix: {matrix}")
         print(f"vector: {vector}")
         self.x = np.linalg.solve(matrix, vector)
@@ -50,9 +53,12 @@ class NURBSSpline:
         if t == 1:
             return self.points[self.n]
         res = 0
+        sum_n = 0
         for i in range(0, self.n + 1):
-            res += self.basis_function(i, self.p, t) * self.x[i] * self.w[i]
-        return res
+            item = self.basis_function(i, self.p, t) * self.w[i]
+            sum_n += item
+            res += item * self.x[i]
+        return res/sum_n
 
     def build_t_points(self):
         t_points = np.zeros(self.n + 1)
