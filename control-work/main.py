@@ -21,8 +21,8 @@ def first_all(first_task):
 def second():
     f = open(f'points/{19}.json')
     data = json.load(f)
-    run_second_as_first(data['curve'], 4)
-    # run_second(data["surface"]["points"], data["surface"]["indices"], data["surface"]["gridSize"])
+    # run_second_as_first(data['curve'], 4)
+    run_second(data["surface"]["points"], data["surface"]["indices"], data["surface"]["gridSize"], 4)
 
 
 def main():
