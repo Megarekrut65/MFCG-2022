@@ -85,7 +85,6 @@ def draw_points(spline_points, points):
     spline_lines.points = o3d.utility.Vector3dVector(spline_points)
     spline_lines.lines = o3d.utility.Vector2iVector(lines)
 
-    # points = [[points[i][0], points[i][1], 0] for i in range(0, len(points))]  # add z coordinate to points
     input_points = o3d.geometry.PointCloud()
     input_points.points = o3d.utility.Vector3dVector(points)
     input_points.colors = o3d.utility.Vector3dVector([[1, 0, 0] for _ in range(0, len(points))])
@@ -93,10 +92,6 @@ def draw_points(spline_points, points):
     o3d.visualization.draw_geometries([spline_lines, input_points], "Bezier spline", 800, 800)
 
 
-class FirstTask:
-    def __init__(self, connect):
-        self.connect = connect
-        self.bezier = BezierSpline(connect)
-
-    def run(self, points):
-        draw_points(self.bezier.run(points), points)
+def run_first(points, connect):
+    bezier = BezierSpline(connect)
+    draw_points(bezier.run(points), points)
