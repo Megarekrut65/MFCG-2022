@@ -8,10 +8,11 @@ def main():
     f = open(f'19.json')
     data = json.load(f)
 
-    run_first(points=data['curve'], connect=False)
-    run_first(points=data['curve'], connect=True)
+    run_first(data['curve'], connect=False)
+    run_first(data['curve'], connect=True)
 
-    run_second(data["surface"]["points"], data["surface"]["indices"], data["surface"]["gridSize"], 4, 4)
+    surface = data["surface"]
+    run_second(surface["points"], surface["indices"], surface["gridSize"], k1=4, k2=4, points_count=50)
 
 
 if __name__ == '__main__':

@@ -13,18 +13,18 @@ class BezierSpline:
         np_points = np.array(points)
         n = len(np_points) - 1  # spline count
 
-        control_points = self.find_control_points(np_points, n)
+        control_points = self.__find_control_points(np_points, n)
         # create points for drawing
         points_to_draw = []
         for i in range(0, n):
             for t in np.arange(0.0, 1, 0.01):
-                points_to_draw.append(self.bezier_item(t, np_points[i],  # pi
-                                                       control_points[2 * i],  # ai
-                                                       control_points[2 * i + 1],  # bi
-                                                       np_points[i + 1]))  # pi+1
+                points_to_draw.append(self.__bezier_item(t, np_points[i],  # pi
+                                                         control_points[2 * i],  # ai
+                                                         control_points[2 * i + 1],  # bi
+                                                         np_points[i + 1]))  # pi+1
         return points_to_draw
 
-    def find_control_points(self, np_points, n):
+    def __find_control_points(self, np_points, n):
         (_, dimension) = np_points.shape
         # create coefficient matrix and vector b
         matrix = np.zeros((2 * n, 2 * n), np.float)
@@ -62,7 +62,7 @@ class BezierSpline:
 
         return np.linalg.solve(matrix, vector)
 
-    def bezier_item(self, t, pi, ai, bi, pi1):
+    def __bezier_item(self, t, pi, ai, bi, pi1):
         return (1 - t) ** 3 * pi + 3 * (1 - t) ** 2 * t * ai + 3 * (1 - t) * t ** 2 * bi + t ** 3 * pi1
 
 

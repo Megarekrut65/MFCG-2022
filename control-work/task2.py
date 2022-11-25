@@ -38,51 +38,53 @@ class NURBSSurface:
         self.p2 = k2 - 1
         self.m1 = self.n1 + self.k1 + 1
         self.m2 = self.n2 + self.k2 + 1
-        self.t1_points = self.build_t1_points()
-        self.t2_points = self.build_t2_points()
-        self.knot1 = self.build_knot(self.t1_points, self.k2, self.p2, self.m2, self.n2)
-        self.knot2 = self.build_knot(self.t2_points, self.k1, self.p1, self.m1, self.n1)
+        self.t1_points = self.__build_t1_points()
+        self.t2_points = self.__build_t2_points()
+        self.knot1 = self.__build_knot(self.t1_points, self.k2, self.p2, self.m2, self.n2)
+        self.knot2 = self.__build_knot(self.t2_points, self.k1, self.p1, self.m1, self.n1)
         self.w = np.full((self.n1 + 1, self.n2 + 1), 1)
-        self.p = self.find_pij(self.find_rij())
+        self.p = self.__find_pij(self.__find_rij())
 
-    def find_rij(self):
+    def __find_rij(self):
         r = [[] for _ in range(0, self.n2 + 1)]
         for t in range(0, self.n1 + 1):
             matrix = np.zeros((self.n2 + 1, self.n2 + 1))
             vector = get_points_in_column(self.points, t)
+            sum_w = 0
             for i in range(0, self.n2 + 1):
                 for j in range(0, self.n2 + 1):
-                    matrix[i][j] = self.basis_function(j, self.p2, self.t1_points[i], self.knot1)
-            x = np.linalg.solve(matrix, vector)
+                    matrix[i][j] = self.__basis_function(j, self.p2, self.t1_points[i], self.knot1)
+                    sum_w += matrix[i][j] * self.__basis_function(i, self.p1, self.t2_points[t], self.knot2) * self.w[i][j]
+            x = np.linalg.solve(matrix/sum_w, vector)
             for i in range(0, len(x)):
                 r[i].append(x[i])
         return r
 
-    def find_pij(self, rij):
+    def __find_pij(self, rij):
         p = []
         for t in range(0, self.n1 + 1):
             matrix = np.zeros((self.n1 + 1, self.n1 + 1), np.float)
             vector = rij[t]
             for i in range(0, self.n1 + 1):
                 for j in range(0, self.n1 + 1):
-                    matrix[i][j] = self.basis_function(j, self.p1, self.t2_points[i], self.knot2)
+                    matrix[i][j] = self.__basis_function(j, self.p1, self.t2_points[i], self.knot2) * self.w[i][j]
             x = np.linalg.solve(matrix, vector)
             p.append(x)
         return p
 
-    def basis_function(self, i, p, t, knot):
+    def __basis_function(self, i, p, t, knot):
         if p == 0:
             return 1 if t == knot[i] or (t > knot[i] and t < knot[i + 1]) or (t == 1 and knot[i + 1] == 1) else 0
         res = 0
         if knot[i + p] != knot[i]:
-            res += (t - knot[i]) / (knot[i + p] - knot[i]) * self.basis_function(i, p - 1, t, knot)
+            res += (t - knot[i]) / (knot[i + p] - knot[i]) * self.__basis_function(i, p - 1, t, knot)
         if knot[i + p + 1] != knot[i + 1]:
-            res += (knot[i + p + 1] - t) / (knot[i + p + 1] - knot[i + 1]) * self.basis_function(i + 1,
-                                                                                                 p - 1,
-                                                                                                 t, knot)
+            res += (knot[i + p + 1] - t) / (knot[i + p + 1] - knot[i + 1]) * self.__basis_function(i + 1,
+                                                                                                   p - 1,
+                                                                                                   t, knot)
         return res
 
-    def build_knot(self, t_points, k, p, m, n):
+    def __build_knot(self, t_points, k, p, m, n):
         knot = np.zeros(m)
         knot[0:k] = 0
         knot[m - k:m] = 1
@@ -93,22 +95,13 @@ class NURBSSurface:
             knot[j + p] /= p
         return knot
 
-    def eval(self, t1, t2):
-        res = 0
-        for i in range(0, self.n1 + 1):
-            for j in range(0, self.n2 + 1):
-                item = self.basis_function(i, self.p1, t1, self.knot1) * self.basis_function(j, self.p2,
-                                                                                             t2, self.knot2)
-                res += item * self.p[i][j]
-        return res
-
-    def build_t1_points(self):
+    def __build_t1_points(self):
         (_, d) = self.points[0].shape
         t1_points = np.zeros(self.n1 + 1)
         t_matrix = [[] for _ in range(0, self.n2 + 1)]
         for k in range(0, self.n1 + 1):
             points = get_points_in_row(self.points, k)
-            t_points = self.build_t_points(self.n2, points)
+            t_points = self.__build_t_points(self.n2, points)
             for i in range(0, self.n2 + 1):
                 t_matrix[i].append(t_points[i])
         for i in range(0, self.n1 + 1):
@@ -117,13 +110,13 @@ class NURBSSurface:
             t1_points[i] /= (self.n2 + 1)
         return t1_points
 
-    def build_t2_points(self):
+    def __build_t2_points(self):
         (_, d) = self.points[0].shape
         t2_points = np.zeros(self.n2 + 1)
         t_matrix = [[] for _ in range(0, self.n1 + 1)]
         for k in range(0, self.n2 + 1):
             points = get_points_in_column(self.points, k)
-            t_points = self.build_t_points(self.n1, points)
+            t_points = self.__build_t_points(self.n1, points)
             for i in range(0, self.n1 + 1):
                 t_matrix[i].append(t_points[i])
         for i in range(0, self.n2 + 1):
@@ -132,7 +125,7 @@ class NURBSSurface:
             t2_points[i] /= (self.n1 + 1)
         return t2_points
 
-    def build_t_points(self, n, points):
+    def __build_t_points(self, n, points):
         t_points = np.zeros(n + 1)
         t_points[0] = 0
         t_points[n] = 1
@@ -142,6 +135,17 @@ class NURBSSurface:
         for p in range(1, n):
             t_points[p] = t_points[p - 1] + point_abs(points[p] - points[p - 1]) / d
         return t_points
+
+    def eval(self, t1, t2):
+        res = 0
+        sum_w = 0
+        for i in range(0, self.n1 + 1):
+            for j in range(0, self.n2 + 1):
+                item = self.__basis_function(i, self.p2, t1, self.knot1) * self.__basis_function(j, self.p1,
+                                                                                                 t2, self.knot2) * self.w[i][j]
+                sum_w += item
+                res += item * self.p[i][j]
+        return res/sum_w
 
 
 def draw_surface(points_to_draw, points, row_size, col_size):
@@ -171,10 +175,10 @@ def draw_surface(points_to_draw, points, row_size, col_size):
                                       mesh_show_back_face=True)
 
 
-def run_second(points, indices, grid, k1, k2):
+def run_second(points, indices, grid, k1, k2, points_count=20):
     nurbs = NURBSSurface(array_to_matrix(points, indices, grid), grid, k1, k2)
     points_to_draw = []
-    t = np.linspace(0, 1, 50)
+    t = np.linspace(0, 1, points_count)
     for _, t1 in enumerate(t):
         for _, t2 in enumerate(t):
             points_to_draw.append(nurbs.eval(t1, t2))
